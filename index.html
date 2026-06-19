@@ -53,56 +53,89 @@
     <div class="row">
       <input id="url" type="text" placeholder="https://gradusanalytics.github.io/repo/dev/minha-tool.html">
     </div>
+
+    <label>Ou um arquivo HTML do seu computador</label>
+    <div class="row">
+      <input id="file" type="file" accept=".html,.htm">
+    </div>
+
     <div id="err"></div>
-    <p class="hint">Favoritos vêm do PPR (ferramentas freeform). O ambiente troca entre
-       a URL de produção e a de homologação. URL avulsa ignora o ambiente.</p>
+    <p class="hint">Favoritos e URL precisam estar acessíveis online. Um arquivo do computador
+       é lido na hora e fica salvo dentro do .pptx — funciona melhor se for um HTML
+       autossuficiente (CSS/JS embutidos ou via links https).</p>
   </div>
 
   <iframe id="app" allow="fullscreen clipboard-write"></iframe>
 
   <script>
-    var SETTINGS_KEY = "embedSrc";
+    var SETTINGS_KEY = "embedState";
+    var OLD_KEY = "embedSrc";            // compat com versao anterior
+    var INLINE_LIMIT = 2000000;          // ~2 MB: acima disso roda na sessao mas nao salva no .pptx
     var officeReady = false;
+    var APPS = [];
+    var blobUrl = null;
 
     function el(id){ return document.getElementById(id); }
+    function showErr(m){ var e=el("err"); e.textContent=m; e.style.display="block"; }
 
-    function loadApp(src){
-      if(!src){ return; }
+    function showAppFrame(){
       el("err").style.display = "none";
-      var f = el("app");
-      f.src = src;
       el("picker").style.display = "none";
-      f.style.display = "block";
+      el("app").style.display = "block";
       el("swap").style.display = "block";
-      saveChoice(src);
     }
 
-    var APPS = [];
+    // Carregar por URL (favorito ou colada)
+    function loadUrl(src, persist){
+      if(!src) return;
+      var f = el("app");
+      if(blobUrl){ try{ URL.revokeObjectURL(blobUrl); }catch(e){} blobUrl=null; }
+      f.src = src;
+      showAppFrame();
+      if(persist !== false) saveState({ kind:"url", value:src });
+    }
+
+    // Carregar conteudo HTML (arquivo local) via Blob
+    function renderInline(html, name, persist){
+      var f = el("app");
+      if(blobUrl){ try{ URL.revokeObjectURL(blobUrl); }catch(e){} }
+      blobUrl = URL.createObjectURL(new Blob([html], { type:"text/html" }));
+      f.src = blobUrl;
+      showAppFrame();
+      if(persist !== false && html.length <= INLINE_LIMIT){
+        saveState({ kind:"inline", html:html, name:name||"" });
+      }
+    }
 
     function currentStage(){
       var r = document.querySelector('input[name="stage"]:checked');
       return r ? r.value : "prd";
     }
-
     function resolveFav(){
       var idx = el("fav").value;
       if(idx === "") return "";
       var a = APPS[idx]; if(!a) return "";
       var st = currentStage();
-      return a[st] || a.prd || a.dev || "";   // fallback se o stage escolhido nao existe
+      return a[st] || a.prd || a.dev || "";   // fallback se o stage nao existe
     }
 
     function loadFromInput(){
       var custom = el("url").value.trim();
       var v = custom || resolveFav();
-      if(!v){ return showErr("Informe uma URL ou escolha um favorito."); }
+      if(!v){ return showErr("Escolha um favorito, cole uma URL ou selecione um arquivo."); }
       if(!/^https:\/\//i.test(v) && !/^[\w./-]+$/.test(v)){
         return showErr("Use uma URL https:// (ou caminho relativo do mesmo host).");
       }
-      loadApp(v);
+      loadUrl(v);
     }
 
-    function showErr(m){ var e=el("err"); e.textContent=m; e.style.display="block"; }
+    function loadLocalFile(file){
+      if(!file) return;
+      var reader = new FileReader();
+      reader.onload = function(){ renderInline(reader.result, file.name); };
+      reader.onerror = function(){ showErr("Nao consegui ler o arquivo."); };
+      reader.readAsText(file);
+    }
 
     function showPicker(){
       el("app").style.display="none";
@@ -110,15 +143,15 @@
       el("picker").style.display="flex";
     }
 
-    function saveChoice(src){
+    function saveState(obj){
       if(!officeReady) return;
       try{
-        Office.context.document.settings.set(SETTINGS_KEY, src);
+        Office.context.document.settings.set(SETTINGS_KEY, JSON.stringify(obj));
         Office.context.document.settings.saveAsync();
       }catch(e){}
     }
 
-    // carrega lista de favoritos (apps.json no mesmo host). Cada item: {name, dev?, prd?}
+    // carrega favoritos (apps.json) e liga os controles
     function loadFavorites(){
       return fetch("apps.json").then(function(r){ return r.ok ? r.json() : []; })
         .then(function(list){
@@ -130,23 +163,40 @@
             sel.appendChild(o);
           });
           sel.addEventListener("change", function(){ if(sel.value){ el("url").value=""; } });
+          el("file").addEventListener("change", function(e){
+            var fl = e.target.files && e.target.files[0];
+            if(fl){ el("url").value=""; el("fav").value=""; loadLocalFile(fl); }
+          });
         })
         .catch(function(){});
     }
 
-    function boot(savedSrc){
+    // Restaura a escolha salva no .pptx (URL ou conteudo inline)
+    function restore(saved){
+      if(!saved) return false;
+      var st;
+      try{ st = JSON.parse(saved); }
+      catch(e){ st = { kind:"url", value:saved }; }   // formato antigo = string de URL
+      if(st && st.kind === "url" && st.value){ loadUrl(st.value, false); return true; }
+      if(st && st.kind === "inline" && st.html){ renderInline(st.html, st.name, false); return true; }
+      return false;
+    }
+
+    function boot(saved){
       loadFavorites().then(function(){
-        if(savedSrc){ loadApp(savedSrc); }   // ja escolhido antes -> carrega direto
-        else { el("picker").style.display="flex"; }
+        if(!restore(saved)){ el("picker").style.display="flex"; }
       });
     }
 
-    // Office presente (online/cache) -> le escolha salva. Ausente (offline) -> picker.
+    // Office presente -> le estado salvo. Ausente (offline) -> picker.
     if(window.Office && Office.onReady){
       Office.onReady(function(){
         officeReady = true;
         var saved = "";
-        try{ saved = Office.context.document.settings.get(SETTINGS_KEY) || ""; }catch(e){}
+        try{
+          var s = Office.context.document.settings;
+          saved = s.get(SETTINGS_KEY) || s.get(OLD_KEY) || "";
+        }catch(e){}
         boot(saved);
       });
     } else {
