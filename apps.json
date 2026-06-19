@@ -1,3 +1,18 @@
 [
-  { "name": "Bolão Copa 2026 (teste)", "url": "bolao-completo.html" }
+  {
+    "name": "Bolão Copa 2026 — Palpites",
+    "url": "https://gradusanalytics.github.io/bolao-copa-mundo/dev/bolao-completo.html"
+  },
+  {
+    "name": "Gerenciador de Versões — PMI OceanPact × CBO",
+    "url": "https://gradusanalytics.github.io/OCE003-snapshots_manager/dev/snapshot-manager.html"
+  },
+  {
+    "name": "Hub Multi-FT — PMI OceanPact × CBO — v69 · camada mobile",
+    "url": "https://gradusanalytics.github.io/OCE003-hub_forca_tarefa/dev/hub-pmi.html"
+  },
+  {
+    "name": "S3 File Explorer — Gradus",
+    "url": "https://gradusanalytics.github.io/s3-file-explorer/dev/s3-explorer.html"
+  }
 ]
