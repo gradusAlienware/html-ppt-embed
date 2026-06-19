@@ -8,6 +8,8 @@
     "dev-server": "node serve.js",
     "sideload": "office-addin-debugging start manifest.xml desktop --app powerpoint --dev-server-port 3000",
     "stop": "office-addin-debugging stop manifest.xml",
+    "sideload:prod": "office-addin-debugging start manifest.prod.xml desktop --app powerpoint",
+    "stop:prod": "office-addin-debugging stop manifest.prod.xml",
     "build:manifest": "node build-manifest.js"
   },
   "devDependencies": {
