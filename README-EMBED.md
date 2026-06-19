@@ -26,9 +26,20 @@ PowerPoint slide
 - Nao pode bloquear iframe (sem X-Frame-Options: DENY / frame-ancestors restritivo).
   GitHub Pages permite iframe -> ok.
 
-### Adicionar um HTML aos favoritos
-Edita `apps.json`: `{ "name": "Minha Tool", "url": "https://.../minha-tool.html" }`.
-URL relativa (mesmo host do add-in) ou absoluta https. Sem rebuild de manifest.
+### Favoritos vem do PPR (sync automatico)
+`apps.json` e GERADO por `sync-apps.js` a partir das ferramentas freeform PUBLICAS
+da org GradusAnalytics (repos publicos com Pages, exceto templates/teste).
+
+Fluxo: cria freeform no PPR -> gera repo publico em github.io/GradusAnalytics/{code}/dev/
+-> sync monta apps.json -> picker lista. Cada tool: nome = <title> do HTML, url = pagina.
+
+Rodar manual:  `set GH_TOKEN=...  &&  node sync-apps.js`
+Automatico:    GitHub Action `.github/workflows/sync-apps.yml` (cron horario + botao
+               manual em Actions -> Run workflow). Requer PAT com scope `workflow`
+               para publicar o .yml; o sync em si usa github.token (le repos publicos).
+
+Adicionar tool fora do PPR: cola a URL https direto no campo do picker (nao precisa
+estar no apps.json). Ou edita apps.json na mao (sera sobrescrito no proximo sync).
 
 ### Limitacao - persistencia por documento
 A escolha e salva via Office settings = nivel DOCUMENTO, por add-in. Dois add-ins
