@@ -21,6 +21,10 @@
   #picker button{background:#002060;color:#fff;border:0;border-radius:4px;padding:9px 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
   #picker button:hover{opacity:.9}
   #picker .hint{font-size:11px;color:#7B8EA0;max-width:520px;text-align:center;line-height:1.5}
+  #picker .stage-row{justify-content:flex-start;gap:18px}
+  #picker .stage-opt{display:flex;align-items:center;gap:6px;width:auto;font-size:13px;font-weight:600;
+    text-transform:none;letter-spacing:0;color:#12376C;cursor:pointer}
+  #picker .stage-opt input{flex:0 0 auto;width:auto;padding:0}
   #err{color:#800000;font-size:12px;font-weight:700;display:none;max-width:520px;text-align:center}
   /* botao trocar flutuante quando app carregado */
   #swap{position:absolute;top:6px;right:6px;z-index:10;background:rgba(0,32,96,.85);color:#fff;border:0;border-radius:4px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;display:none;font-family:'Segoe UI',sans-serif}
@@ -32,18 +36,26 @@
 
   <div id="picker">
     <h1>Embedar HTML no slide</h1>
-    <label>Escolha um favorito</label>
+
+    <label>Ambiente</label>
+    <div class="row stage-row">
+      <label class="stage-opt"><input type="radio" name="stage" value="prd" checked> Produção (prd)</label>
+      <label class="stage-opt"><input type="radio" name="stage" value="dev"> Homologação (dev)</label>
+    </div>
+
+    <label>Escolha um favorito (do PPR)</label>
     <div class="row">
       <select id="fav"><option value="">-- selecione --</option></select>
-    </div>
-    <label>Ou cole uma URL HTTPS</label>
-    <div class="row">
-      <input id="url" type="text" placeholder="https://usuario.github.io/repo/minha-tool.html">
       <button onclick="loadFromInput()">Carregar</button>
     </div>
+
+    <label>Ou cole uma URL HTTPS</label>
+    <div class="row">
+      <input id="url" type="text" placeholder="https://gradusanalytics.github.io/repo/dev/minha-tool.html">
+    </div>
     <div id="err"></div>
-    <p class="hint">O HTML precisa estar numa URL HTTP(S) acessivel (publica ou da rede)
-       e permitir iframe. Arquivo local no disco nao funciona.</p>
+    <p class="hint">Favoritos vêm do PPR (ferramentas freeform). O ambiente troca entre
+       a URL de produção e a de homologação. URL avulsa ignora o ambiente.</p>
   </div>
 
   <iframe id="app" allow="fullscreen clipboard-write"></iframe>
@@ -65,8 +77,24 @@
       saveChoice(src);
     }
 
+    var APPS = [];
+
+    function currentStage(){
+      var r = document.querySelector('input[name="stage"]:checked');
+      return r ? r.value : "prd";
+    }
+
+    function resolveFav(){
+      var idx = el("fav").value;
+      if(idx === "") return "";
+      var a = APPS[idx]; if(!a) return "";
+      var st = currentStage();
+      return a[st] || a.prd || a.dev || "";   // fallback se o stage escolhido nao existe
+    }
+
     function loadFromInput(){
-      var v = el("url").value.trim() || el("fav").value;
+      var custom = el("url").value.trim();
+      var v = custom || resolveFav();
       if(!v){ return showErr("Informe uma URL ou escolha um favorito."); }
       if(!/^https:\/\//i.test(v) && !/^[\w./-]+$/.test(v)){
         return showErr("Use uma URL https:// (ou caminho relativo do mesmo host).");
@@ -90,14 +118,15 @@
       }catch(e){}
     }
 
-    // carrega lista de favoritos (apps.json no mesmo host)
+    // carrega lista de favoritos (apps.json no mesmo host). Cada item: {name, dev?, prd?}
     function loadFavorites(){
       return fetch("apps.json").then(function(r){ return r.ok ? r.json() : []; })
         .then(function(list){
+          APPS = list || [];
           var sel = el("fav");
-          (list||[]).forEach(function(a){
+          APPS.forEach(function(a, i){
             var o=document.createElement("option");
-            o.value=a.url; o.textContent=a.name;
+            o.value=String(i); o.textContent=a.name;
             sel.appendChild(o);
           });
           sel.addEventListener("change", function(){ if(sel.value){ el("url").value=""; } });

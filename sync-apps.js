@@ -38,18 +38,38 @@ async function listRepos() {
   return out.filter(r => !r.private && r.has_pages && !DENY.has(r.name));
 }
 
-// HTML da ferramenta = .html em gh-pages/dev/, preferindo o que NAO e index.html
-async function htmlsForRepo(repo) {
+// gh-pages serve duas pastas por stage: dev/ (homolog) e main/ (producao=prd).
+const STAGE_FOLDER = { dev: "dev", prd: "main" };
+
+// Lista os .html de uma pasta de stage no gh-pages. Vazio se nao existir.
+async function stageHtmls(repo, folder) {
   let items;
   try {
-    items = await gh(`https://api.github.com/repos/${ORG}/${repo}/contents/dev?ref=gh-pages`);
+    items = await gh(`https://api.github.com/repos/${ORG}/${repo}/contents/${folder}?ref=gh-pages`);
   } catch (e) {
     return [];
   }
   if (!Array.isArray(items)) return [];
-  const htmls = items.filter(x => x.type === "file" && x.name.toLowerCase().endsWith(".html"));
-  const nonIndex = htmls.filter(x => x.name.toLowerCase() !== "index.html");
-  return nonIndex.length ? nonIndex : htmls;
+  return items.filter(x => x.type === "file" && x.name.toLowerCase().endsWith(".html"));
+}
+
+const byLen = (a, b) => a.name.length - b.name.length || a.name.localeCompare(b.name);
+
+// Escolhe o html "principal" de cada stage. Prefere nome comum aos dois stages
+// (mesma ferramenta), senao o menor non-index, senao index.html.
+function pickFiles(devList, prdList) {
+  const devNon = devList.filter(x => x.name.toLowerCase() !== "index.html").sort(byLen);
+  const prdNon = prdList.filter(x => x.name.toLowerCase() !== "index.html").sort(byLen);
+  const common = devNon.filter(d => prdNon.some(p => p.name === d.name)).sort(byLen);
+  let dev, prd;
+  if (common.length) {
+    dev = devList.find(x => x.name === common[0].name);
+    prd = prdList.find(x => x.name === common[0].name);
+  } else {
+    dev = devNon[0] || devList.find(x => x.name.toLowerCase() === "index.html");
+    prd = prdNon[0] || prdList.find(x => x.name.toLowerCase() === "index.html");
+  }
+  return { dev, prd };
 }
 
 function titleFrom(html, fallback) {
@@ -63,17 +83,24 @@ function titleFrom(html, fallback) {
   const repos = await listRepos();
   const apps = [];
   for (const r of repos) {
-    const htmls = await htmlsForRepo(r.name);
-    for (const h of htmls) {
-      const url = `${PAGES_BASE}/${r.name}/dev/${h.name}`;
-      let name = r.name;
-      try { name = titleFrom(await gh(h.download_url, true), r.name); } catch (e) {}
-      apps.push({ name, url, repo: r.name });
-    }
+    const devList = await stageHtmls(r.name, STAGE_FOLDER.dev);
+    const prdList = await stageHtmls(r.name, STAGE_FOLDER.prd);
+    if (!devList.length && !prdList.length) continue;
+    const { dev, prd } = pickFiles(devList, prdList);
+    const entry = { repo: r.name };
+    if (dev) entry.dev = `${PAGES_BASE}/${r.name}/${STAGE_FOLDER.dev}/${dev.name}`;
+    if (prd) entry.prd = `${PAGES_BASE}/${r.name}/${STAGE_FOLDER.prd}/${prd.name}`;
+    // nome = <title> do arquivo non-index (prefere prd); evita pegar wrapper index.html
+    let name = r.name;
+    const cands = [prd, dev].filter(Boolean);
+    const src = cands.find(f => f.name.toLowerCase() !== "index.html") || cands[0];
+    try { name = titleFrom(await gh(src.download_url, true), r.name); } catch (e) {}
+    entry.name = name;
+    apps.push(entry);
   }
   apps.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
-  const out = apps.map(({ name, url }) => ({ name, url }));
+  const out = apps.map(({ name, dev, prd }) => ({ name, ...(dev ? { dev } : {}), ...(prd ? { prd } : {}) }));
   fs.writeFileSync(path.join(__dirname, "apps.json"), JSON.stringify(out, null, 2) + "\n");
   console.log(`apps.json gerado: ${out.length} ferramentas`);
-  apps.forEach(a => console.log(`  ${a.name}  <-  ${a.repo}`));
+  apps.forEach(a => console.log(`  ${a.name}  <-  ${a.repo}  [${a.dev ? "dev" : ""}${a.dev && a.prd ? "+" : ""}${a.prd ? "prd" : ""}]`));
 })().catch(e => { console.error("FALHOU:", e.message); process.exit(1); });

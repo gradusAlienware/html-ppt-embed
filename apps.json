@@ -1,18 +1,22 @@
 [
   {
     "name": "Bolão Copa 2026 — Palpites",
-    "url": "https://gradusanalytics.github.io/bolao-copa-mundo/dev/bolao-completo.html"
+    "dev": "https://gradusanalytics.github.io/bolao-copa-mundo/dev/bolao-completo.html",
+    "prd": "https://gradusanalytics.github.io/bolao-copa-mundo/main/index.html"
   },
   {
     "name": "Gerenciador de Versões — PMI OceanPact × CBO",
-    "url": "https://gradusanalytics.github.io/OCE003-snapshots_manager/dev/snapshot-manager.html"
+    "dev": "https://gradusanalytics.github.io/OCE003-snapshots_manager/dev/snapshot-manager.html",
+    "prd": "https://gradusanalytics.github.io/OCE003-snapshots_manager/main/snapshot-manager.html"
   },
   {
     "name": "Hub Multi-FT — PMI OceanPact × CBO — v69 · camada mobile",
-    "url": "https://gradusanalytics.github.io/OCE003-hub_forca_tarefa/dev/hub-pmi.html"
+    "dev": "https://gradusanalytics.github.io/OCE003-hub_forca_tarefa/dev/hub-pmi.html",
+    "prd": "https://gradusanalytics.github.io/OCE003-hub_forca_tarefa/main/hub-pmi.html"
   },
   {
     "name": "S3 File Explorer — Gradus",
-    "url": "https://gradusanalytics.github.io/s3-file-explorer/dev/s3-explorer.html"
+    "dev": "https://gradusanalytics.github.io/s3-file-explorer/dev/s3-explorer.html",
+    "prd": "https://gradusanalytics.github.io/s3-file-explorer/main/s3-explorer.html"
   }
 ]
