@@ -1,0 +1,290 @@
+<title>HTML Embed — Guia de Instalação</title>
+<style>
+  :root{
+    --ground:#F5F7FA;
+    --surface:#FFFFFF;
+    --navy:#002A5C;
+    --navy-deep:#001B3D;
+    --text:#0F2747;
+    --muted:#5A6B82;
+    --line:#DEE4EC;
+    --accent:#E68E18;
+    --accent-2:#296DB7;
+    --ok:#1E8E5A;
+    --warn:#B23B2E;
+    --maxw:880px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:var(--ground);color:var(--text);
+    font-family:"Segoe UI",-apple-system,Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.55;-webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px}
+  .eyebrow{
+    font-size:12px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--accent);margin:0 0 14px;
+  }
+  h1{font-size:clamp(30px,5vw,46px);line-height:1.05;margin:0;font-weight:800;letter-spacing:-.02em}
+  h2{font-size:13px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--accent-2);margin:0}
+  p{margin:0}
+
+  /* ---------- HERO ---------- */
+  .hero{background:linear-gradient(160deg,var(--navy) 0%,var(--navy-deep) 100%);color:#fff;padding:64px 0 56px}
+  .hero .eyebrow{color:var(--accent)}
+  .hero h1{color:#fff;max-width:18ch}
+  .hero .lede{margin-top:18px;font-size:18px;color:#C5D3E6;max-width:56ch}
+  .meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:30px}
+  .pill{
+    display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:8px 15px;
+    font-size:13px;font-weight:600;color:#E8EFF8;
+  }
+  .pill b{color:#fff;font-weight:800}
+  .pill .dot{width:7px;height:7px;border-radius:50%;background:var(--accent)}
+
+  /* mini slide mock in hero */
+  .slidewrap{margin-top:40px}
+  .slide{
+    background:#fff;border-radius:10px;padding:14px;box-shadow:0 24px 60px rgba(0,0,0,.35);
+    max-width:520px;
+  }
+  .slide-bar{display:flex;gap:6px;margin-bottom:12px}
+  .slide-bar i{width:10px;height:10px;border-radius:50%;background:#D7DEE8;display:block}
+  .embed{
+    border:2px dashed var(--accent);border-radius:8px;background:#FBFCFE;
+    aspect-ratio:16/8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+    color:var(--accent-2);text-align:center;padding:16px;
+  }
+  .embed .tag{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+  .embed .big{font-size:16px;font-weight:700;color:var(--text)}
+  .embed .sm{font-size:12px;color:var(--muted)}
+
+  /* ---------- SECTIONS ---------- */
+  section{padding:48px 0}
+  .sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:26px}
+  .sec-head .n{font-size:13px;font-weight:800;color:var(--accent)}
+
+  /* prereqs */
+  .checks{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .check{
+    background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;
+    display:flex;gap:12px;align-items:flex-start;
+  }
+  .check .mk{flex:0 0 auto;width:22px;height:22px;border-radius:6px;background:rgba(40,109,183,.12);
+    color:var(--accent-2);font-weight:900;font-size:13px;display:flex;align-items:center;justify-content:center;margin-top:1px}
+  .check b{display:block;font-size:14px}
+  .check span{font-size:13px;color:var(--muted)}
+
+  /* stepper */
+  .steps{display:flex;flex-direction:column;gap:18px}
+  .step{
+    position:relative;background:var(--surface);border:1px solid var(--line);border-radius:14px;
+    padding:24px 26px 24px 86px;
+  }
+  .step .num{
+    position:absolute;left:22px;top:22px;font-size:30px;font-weight:800;line-height:1;
+    color:var(--accent);font-variant-numeric:tabular-nums;
+  }
+  .step h3{margin:0 0 6px;font-size:19px;font-weight:800;letter-spacing:-.01em}
+  .step .desc{color:var(--muted);font-size:14px;margin-bottom:14px}
+  .step ol,.step ul{margin:0;padding-left:20px}
+  .step li{margin:6px 0;font-size:14.5px}
+  .step li::marker{color:var(--accent-2);font-weight:700}
+
+  /* breadcrumb path of menu clicks */
+  .path{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:14px 0;
+    background:#F0F4F9;border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+  .path .crumb{font-size:13px;font-weight:700;color:var(--navy);white-space:nowrap}
+  .path .sep{color:var(--accent);font-weight:800}
+  .path .crumb.end{color:#fff;background:var(--accent-2);border-radius:6px;padding:3px 9px}
+
+  .code{
+    font-family:"Cascadia Code",Consolas,"SF Mono",Menlo,monospace;
+    background:var(--navy);color:#EAF1FA;border-radius:8px;padding:11px 14px;font-size:13.5px;
+    display:block;word-break:break-all;margin:10px 0 2px;
+  }
+  .field-label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+
+  .callout{
+    border-left:3px solid var(--accent);background:#FFF6EA;border-radius:0 10px 10px 0;
+    padding:14px 16px;margin:16px 0;font-size:13.5px;color:#6B4A18;
+  }
+  .callout b{color:#8a5d18}
+
+  /* usage cards */
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px}
+  .card .ic{font-size:22px;margin-bottom:8px}
+  .card b{display:block;font-size:14.5px;margin-bottom:4px}
+  .card p{font-size:13px;color:var(--muted)}
+
+  /* troubleshooting */
+  .tbl{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .tbl th{background:var(--navy);color:#fff;text-align:left;font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:13px 16px}
+  .tbl td{padding:14px 16px;border-top:1px solid var(--line);font-size:13.5px;vertical-align:top}
+  .tbl td:first-child{font-weight:700;color:var(--navy);width:38%}
+  .scroll{overflow-x:auto}
+
+  footer{background:var(--navy-deep);color:#9FB4CE;padding:34px 0;font-size:13px}
+  footer .wrap{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:center}
+  footer b{color:#fff}
+
+  @media(max-width:640px){
+    .checks,.cards{grid-template-columns:1fr}
+    .step{padding:22px 18px 22px 18px}
+    .step .num{position:static;display:block;margin-bottom:8px}
+  }
+</style>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Gradus · Guia de instalação</p>
+    <h1>HTML Embed para PowerPoint</h1>
+    <p class="lede">Um suplemento que coloca ferramentas HTML da Gradus vivas dentro do slide —
+       clicáveis, interativas, direto na apresentação. Este guia leva você do zero até o primeiro uso.</p>
+
+    <div class="meta">
+      <span class="pill"><span class="dot"></span>Tempo: <b>~5 minutos</b></span>
+      <span class="pill"><span class="dot"></span>Frequência: <b>1 vez por pessoa</b></span>
+      <span class="pill"><span class="dot"></span>Onde: <b>PowerPoint no Windows</b></span>
+    </div>
+
+    <div class="slidewrap">
+      <div class="slide">
+        <div class="slide-bar"><i></i><i></i><i></i></div>
+        <div class="embed">
+          <span class="tag">Suplemento no slide</span>
+          <span class="big">Sua ferramenta HTML, interativa</span>
+          <span class="sm">Escolha a ferramenta, ela carrega aqui dentro</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head"><h2>Antes de começar</h2></div>
+    <div class="checks">
+      <div class="check"><span class="mk">1</span><div><b>PowerPoint no Windows</b><span>Versão 2019 ou Microsoft 365 (desktop). Não funciona no PowerPoint online nem no Mac.</span></div></div>
+      <div class="check"><span class="mk">2</span><div><b>Conexão com a internet</b><span>As ferramentas carregam da web. Sem internet, o suplemento não abre.</span></div></div>
+      <div class="check"><span class="mk">3</span><div><b>Acesso à pasta do catálogo</b><span>Você precisa estar na rede da empresa para enxergar a pasta compartilhada do suplemento.</span></div></div>
+      <div class="check"><span class="mk">4</span><div><b>Permissão para abrir suplementos</b><span>Se sua máquina bloquear suplementos do Office, fale com o TI antes do passo 1.</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section style="background:#EDF1F7">
+  <div class="wrap">
+    <div class="sec-head"><span class="n">PASSO A PASSO</span><h2>Instalação</h2></div>
+    <div class="steps">
+
+      <div class="step">
+        <span class="num">01</span>
+        <h3>Registrar o catálogo do suplemento</h3>
+        <p class="desc">Você diz ao PowerPoint onde encontrar o suplemento. Faz isso uma única vez.</p>
+        <p>Abra o PowerPoint e siga este caminho de menus:</p>
+        <div class="path">
+          <span class="crumb">Arquivo</span><span class="sep">›</span>
+          <span class="crumb">Opções</span><span class="sep">›</span>
+          <span class="crumb">Central de Confiabilidade</span><span class="sep">›</span>
+          <span class="crumb">Configurações da Central de Confiabilidade</span><span class="sep">›</span>
+          <span class="crumb end">Catálogos de Suplementos Confiáveis</span>
+        </div>
+        <p class="field-label">No campo “URL do catálogo”, cole exatamente:</p>
+        <code class="code">\\DESKTOP-H8HD746\PPT-Addins</code>
+        <ol>
+          <li>Clique em <b>Adicionar catálogo</b>.</li>
+          <li>Marque a caixa <b>Mostrar no Menu</b> na linha que apareceu.</li>
+          <li>Clique em <b>OK</b> para fechar as janelas.</li>
+        </ol>
+        <div class="callout"><b>Atenção:</b> tem que ser esse caminho de rede (começa com <b>\\</b>).
+          Uma pasta comum do seu computador não funciona como catálogo.</div>
+      </div>
+
+      <div class="step">
+        <span class="num">02</span>
+        <h3>Reiniciar o PowerPoint</h3>
+        <p class="desc">O catálogo só passa a valer depois de reabrir o programa.</p>
+        <ol>
+          <li>Feche o PowerPoint por completo.</li>
+          <li>Abra de novo (pode ser uma apresentação em branco).</li>
+        </ol>
+      </div>
+
+      <div class="step">
+        <span class="num">03</span>
+        <h3>Inserir o suplemento no slide</h3>
+        <p class="desc">Agora o “HTML Embed” aparece na sua lista de suplementos.</p>
+        <div class="path">
+          <span class="crumb">Inserir</span><span class="sep">›</span>
+          <span class="crumb">Meus Suplementos</span><span class="sep">›</span>
+          <span class="crumb">Pasta Compartilhada</span><span class="sep">›</span>
+          <span class="crumb end">HTML Embed</span>
+        </div>
+        <ol>
+          <li>Na faixa <b>Inserir</b>, clique na setinha de <b>Meus Suplementos</b>.</li>
+          <li>Abra a aba <b>Pasta Compartilhada</b> na janela.</li>
+          <li>Selecione <b>HTML Embed</b> e clique em <b>Adicionar</b>.</li>
+        </ol>
+        <p>Um quadro aparece no slide. É o suplemento — você pode arrastá-lo e redimensioná-lo como qualquer objeto.</p>
+      </div>
+
+      <div class="step">
+        <span class="num">04</span>
+        <h3>Escolher e carregar a ferramenta</h3>
+        <p class="desc">Dentro do quadro está o seletor. Você escolhe o que vai aparecer.</p>
+        <ol>
+          <li><b>Ambiente:</b> escolha <b>Produção (prd)</b> para a versão oficial, ou <b>Homologação (dev)</b> para testar.</li>
+          <li><b>Ferramenta:</b> abra a lista de favoritos e escolha — ela vem direto das ferramentas publicadas no PPR.</li>
+          <li>Clique em <b>Carregar</b>. A ferramenta abre dentro do slide, pronta para usar.</li>
+        </ol>
+        <div class="callout">Precisa de algo que não está na lista? Cole a URL da ferramenta no campo
+          “Ou cole uma URL HTTPS” e clique em Carregar.</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head"><h2>No dia a dia</h2></div>
+    <div class="cards">
+      <div class="card"><div class="ic">🔄</div><b>Trocar de ferramenta</b><p>Use o botão <b>Trocar HTML</b> no canto superior do quadro para voltar ao seletor.</p></div>
+      <div class="card"><div class="ic">⛶</div><b>Ajustar o tamanho</b><p>Arraste as bordas do quadro no slide. A ferramenta acompanha o tamanho.</p></div>
+      <div class="card"><div class="ic">💾</div><b>Fica salvo na apresentação</b><p>A ferramenta escolhida é lembrada quando você reabre o arquivo .pptx.</p></div>
+    </div>
+  </div>
+</section>
+
+<section style="background:#EDF1F7">
+  <div class="wrap">
+    <div class="sec-head"><h2>Se algo der errado</h2></div>
+    <div class="scroll">
+      <table class="tbl">
+        <thead><tr><th>Sintoma</th><th>O que fazer</th></tr></thead>
+        <tbody>
+          <tr><td>O “HTML Embed” não aparece em Pasta Compartilhada</td>
+            <td>Confira se marcou <b>Mostrar no Menu</b> no passo 1 e se reiniciou o PowerPoint. Verifique também se está na rede da empresa.</td></tr>
+          <tr><td>O catálogo não aceita o caminho</td>
+            <td>O caminho precisa começar com <b>\\</b> (caminho de rede). Cole exatamente <b>\\DESKTOP-H8HD746\PPT-Addins</b>.</td></tr>
+          <tr><td>O quadro fica em “Carregando…”</td>
+            <td>É falta de internet ou a rede está bloqueando o endereço. Teste a conexão; se persistir, fale com o TI sobre liberar <b>github.io</b>.</td></tr>
+          <tr><td>A ferramenta abre em branco</td>
+            <td>Algumas ferramentas pedem login ou VPN. Confirme que você consegue abrir a mesma URL no navegador.</td></tr>
+          <tr><td>Nada disso resolveu</td>
+            <td>Anote o sintoma e em que passo travou, e procure o responsável indicado abaixo.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>Gradus Consultoria · Suplemento <b>HTML Embed</b> para PowerPoint</span>
+    <span>Dúvidas de instalação: <b>João Madeira</b></span>
+  </div>
+</footer>
