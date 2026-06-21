@@ -26,13 +26,16 @@
     text-transform:none;letter-spacing:0;color:#12376C;cursor:pointer}
   #picker .stage-opt input{flex:0 0 auto;width:auto;padding:0}
   #err{color:#800000;font-size:12px;font-weight:700;display:none;max-width:520px;text-align:center}
-  /* botao trocar flutuante quando app carregado */
-  #swap{position:absolute;top:6px;right:6px;z-index:10;background:rgba(0,32,96,.85);color:#fff;border:0;border-radius:4px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;display:none;font-family:'Segoe UI',sans-serif}
+  /* zona de hover no canto inferior direito (fica acima do iframe p/ capturar o mouse) */
+  #swapZone{position:absolute;bottom:0;right:0;width:130px;height:52px;z-index:10;display:none}
+  /* botao trocar: oculto, aparece ao passar o mouse na zona */
+  #swap{position:absolute;bottom:8px;right:8px;background:rgba(0,32,96,.85);color:#fff;border:0;border-radius:4px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Segoe UI',sans-serif;opacity:0;pointer-events:none;transition:opacity .15s}
+  #swapZone:hover #swap{opacity:1;pointer-events:auto}
   #swap:hover{background:#002060}
 </style>
 </head>
 <body>
-  <button id="swap" onclick="showPicker()">Trocar HTML</button>
+  <div id="swapZone"><button id="swap" onclick="showPicker()">Trocar HTML</button></div>
 
   <div id="picker">
     <h1>Embedar HTML no slide</h1>
@@ -82,7 +85,7 @@
       el("err").style.display = "none";
       el("picker").style.display = "none";
       el("app").style.display = "block";
-      el("swap").style.display = "block";
+      el("swapZone").style.display = "block";
     }
 
     // Carregar por URL (favorito ou colada)
@@ -139,7 +142,7 @@
 
     function showPicker(){
       el("app").style.display="none";
-      el("swap").style.display="none";
+      el("swapZone").style.display="none";
       el("picker").style.display="flex";
     }
 
