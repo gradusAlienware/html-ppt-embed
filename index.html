@@ -29,13 +29,19 @@
   /* zona de hover no canto inferior direito (fica acima do iframe p/ capturar o mouse) */
   #swapZone{position:absolute;bottom:0;right:0;width:130px;height:52px;z-index:10;display:none}
   /* botao trocar: oculto, aparece ao passar o mouse na zona */
-  #swap{position:absolute;bottom:8px;right:8px;background:rgba(0,32,96,.85);color:#fff;border:0;border-radius:4px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Segoe UI',sans-serif;opacity:0;pointer-events:none;transition:opacity .15s}
+  #swap{position:absolute;bottom:8px;right:8px;display:flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0;background:rgba(0,32,96,.85);color:#fff;border:0;border-radius:50%;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .15s}
+  #swap svg{width:16px;height:16px;display:block}
   #swapZone:hover #swap{opacity:1;pointer-events:auto}
   #swap:hover{background:#002060}
 </style>
 </head>
 <body>
-  <div id="swapZone"><button id="swap" onclick="showPicker()">Trocar HTML</button></div>
+  <div id="swapZone"><button id="swap" onclick="showPicker()" title="Trocar HTML" aria-label="Trocar HTML">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+  </button></div>
 
   <div id="picker">
     <h1>Embedar HTML no slide</h1>
