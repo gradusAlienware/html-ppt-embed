@@ -1791,7 +1791,10 @@ function updateKpis(){
 }
 
 /* ── NAME ─────────────────────────────────── */
-function onNameChange(){}
+function onNameChange(){ persist(); }
+
+/* persiste no .pptx via bridge do add-in (no-op fora do PowerPoint) */
+function persist(){ if(window.embedSave) embedSave(); }
 
 /* ── GAME CARD ─────────────────────────────── */
 function gameCard(g){
@@ -1844,6 +1847,7 @@ function setPick(el,side){
     renderSpecial('prorrogacao');
     renderSpecial('penaltis');
   }
+  persist();
 }
 
 function setDrawWinner(gid, side){
@@ -1854,6 +1858,7 @@ function setDrawWinner(gid, side){
   renderSpecial('goleada');
   renderSpecial('prorrogacao');
   renderSpecial('penaltis');
+  persist();
 }
 
 /* ── WEEK RENDER ───────────────────────────── */
@@ -2003,7 +2008,7 @@ function renderKnockout(){
 }
 
 /* ── ARTILHEIRO ────────────────────────────── */
-function setArtilheiro(name,country){P.artilheiro=name?(name+(country?' ('+country+')':'')):'';}
+function setArtilheiro(name,country){P.artilheiro=name?(name+(country?' ('+country+')':'')):'';persist();}
 function renderArtilheiro(){
   document.getElementById('artilheiro-container').innerHTML=
     '<div class="art-box">'
@@ -2033,7 +2038,7 @@ function toggleSpecial(el){
     if(arr.length>=SPECIAL_CFG[type].max){toast('Máximo '+SPECIAL_CFG[type].max+' escolhas para '+SPECIAL_CFG[type].label);return;}
     arr.push(gid);
   }
-  renderSpecial(type);updateKpis();
+  renderSpecial(type);updateKpis();persist();
 }
 
 function renderSpecial(type){
@@ -2122,6 +2127,50 @@ document.addEventListener('click', function(e){
 
 renderGroups();renderKnockout();renderArtilheiro();
 renderSpecial('goleada');renderSpecial('prorrogacao');renderSpecial('penaltis');
+
+/* ── Bridge de persistencia com o add-in "HTML Embed" (PowerPoint) ──────
+   Estado (palpites + nome) viaja DENTRO do .pptx. Ver EMBED-STATE.md.
+   Fora do PowerPoint: no-op, app roda igual. */
+(function(){
+  if(window.parent === window) return;   // nao embedado -> ignora
+
+  function getState(){
+    var nameEl = document.getElementById('player-name');
+    return { P: P, name: nameEl ? nameEl.value : '' };
+  }
+  function setState(s){
+    if(!s) return;
+    if(s.P){
+      P.picks       = s.P.picks       || {};
+      P.artilheiro  = s.P.artilheiro  || '';
+      P.goleada     = s.P.goleada     || [];
+      P.prorrogacao = s.P.prorrogacao || [];
+      P.penaltis    = s.P.penaltis    || [];
+    }
+    var nameEl = document.getElementById('player-name');
+    if(nameEl && typeof s.name === 'string') nameEl.value = s.name;
+    renderGroups();renderKnockout();renderArtilheiro();
+    renderSpecial('goleada');renderSpecial('prorrogacao');renderSpecial('penaltis');
+    updateKpis();
+  }
+
+  window.addEventListener("message", function(ev){
+    var d = ev.data;
+    if(!d || d.__embed !== true) return;
+    if(d.type === "RESTORE" && d.state){ try{ setState(d.state); }catch(e){} }
+    if(d.type === "STATE_TOO_BIG"){ console.warn("Estado > " + d.limit + " bytes: nao salvo no .pptx."); }
+  });
+
+  parent.postMessage({ __embed:true, type:"READY" }, "*");
+
+  var t;
+  window.embedSave = function(){
+    clearTimeout(t);
+    t = setTimeout(function(){
+      try{ parent.postMessage({ __embed:true, type:"STATE", state: getState() }, "*"); }catch(e){}
+    }, 500);
+  };
+})();
 </script>
 </body>
 </html>

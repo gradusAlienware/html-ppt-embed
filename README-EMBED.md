@@ -47,6 +47,13 @@ do mesmo tipo no mesmo .pptx compartilham a ultima escolha salva. Para HTMLs
 diferentes em slides diferentes do MESMO deck, use o botao "Trocar HTML" ao
 apresentar, ou mantenha 1 HTML por deck.
 
+### Persistencia do ESTADO interno do HTML (dados inputados)
+O add-in tambem persiste o estado interno do HTML embedado (inputs/dados) DENTRO
+do .pptx, via bridge postMessage shell<->iframe. Sobrevive fechar/reabrir e viaja
+p/ outra maquina. Estado separado por HTML, teto ~2 MB. O HTML alvo precisa do
+snippet bridge (getState/setState + embedSave). Ver `EMBED-STATE.md`.
+`bolao-completo.html` ja usa como exemplo.
+
 ## Setup (1x)
 
 ```powershell

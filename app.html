@@ -80,9 +80,13 @@
     var SETTINGS_KEY = "embedState";
     var OLD_KEY = "embedSrc";            // compat com versao anterior
     var INLINE_LIMIT = 2000000;          // ~2 MB: acima disso roda na sessao mas nao salva no .pptx
+    var STATE_PREFIX = "appState:";      // chave por-HTML do estado interno (dados inputados)
+    var STATE_LIMIT = 2000000;           // ~2 MB: teto do estado salvo no .pptx
     var officeReady = false;
     var APPS = [];
     var blobUrl = null;
+    var currentKey = null;               // identifica o HTML carregado (separa estado por tool)
+    var saveTimer = null;
 
     function el(id){ return document.getElementById(id); }
     function showErr(m){ var e=el("err"); e.textContent=m; e.style.display="block"; }
@@ -98,6 +102,7 @@
     function loadUrl(src, persist){
       if(!src) return;
       var f = el("app");
+      currentKey = "u:" + src;           // estado salvo por URL
       if(blobUrl){ try{ URL.revokeObjectURL(blobUrl); }catch(e){} blobUrl=null; }
       f.src = src;
       showAppFrame();
@@ -107,6 +112,7 @@
     // Carregar conteudo HTML (arquivo local) via Blob
     function renderInline(html, name, persist){
       var f = el("app");
+      currentKey = "i:" + (name||"") + ":" + html.length;   // estado salvo por arquivo inline
       if(blobUrl){ try{ URL.revokeObjectURL(blobUrl); }catch(e){} }
       blobUrl = URL.createObjectURL(new Blob([html], { type:"text/html" }));
       f.src = blobUrl;
@@ -159,6 +165,50 @@
         Office.context.document.settings.saveAsync();
       }catch(e){}
     }
+
+    /* ── Bridge de estado com o HTML embedado ──────────────────────────
+       O HTML alvo (iframe) manda postMessage({__embed,type:"STATE",state})
+       a cada mudanca; salvamos no .pptx por chave currentKey. No load ele
+       manda {type:"READY"} e devolvemos {type:"RESTORE",state} p/ rehidratar.
+       Estado viaja DENTRO do .pptx (Office settings) -> outra maquina ok. */
+    function stateKey(){ return currentKey ? STATE_PREFIX + currentKey : null; }
+
+    function loadSavedState(){
+      if(!officeReady) return null;
+      var k = stateKey(); if(!k) return null;
+      try{ var v = Office.context.document.settings.get(k); return v ? JSON.parse(v) : null; }
+      catch(e){ return null; }
+    }
+
+    function postToFrame(msg){
+      var f = el("app");
+      if(f && f.contentWindow){ try{ f.contentWindow.postMessage(msg, "*"); }catch(e){} }
+    }
+
+    function persistState(state){
+      if(!officeReady) return;
+      var k = stateKey(); if(!k) return;
+      var s;
+      try{ s = JSON.stringify(state); }catch(e){ return; }
+      if(s.length > STATE_LIMIT){                       // grande demais p/ caber no .pptx
+        postToFrame({ __embed:true, type:"STATE_TOO_BIG", limit:STATE_LIMIT });
+        return;
+      }
+      clearTimeout(saveTimer);                          // debounce: batelada saveAsync
+      saveTimer = setTimeout(function(){
+        try{
+          Office.context.document.settings.set(k, s);
+          Office.context.document.settings.saveAsync();
+        }catch(e){}
+      }, 600);
+    }
+
+    window.addEventListener("message", function(ev){
+      var d = ev.data;
+      if(!d || d.__embed !== true) return;
+      if(d.type === "READY"){ postToFrame({ __embed:true, type:"RESTORE", state: loadSavedState() }); }
+      else if(d.type === "STATE"){ persistState(d.state); }
+    });
 
     // carrega favoritos (apps.json) e liga os controles
     function loadFavorites(){
